@@ -128,14 +128,14 @@ int main(void)
     schedInfo[3].N = 1000; // 1 Hz
     schedInfo[3].f = taskPrintBattery;
     schedInfo[3].params = (void*)(&data_values);
-    schedInfo[3].enable = 0;
+    schedInfo[3].enable = 1;
 
     // Print Infrared task
     schedInfo[4].n = -5;
     schedInfo[4].N = 100;  // 10 Hz
     schedInfo[4].f = taskPrintInfrared;
     schedInfo[4].params = (void*)(&data_values);
-    schedInfo[4].enable = 0;
+    schedInfo[4].enable = 1;
 
     /* ################################################################
                         pin remap and setup of the led
@@ -228,7 +228,7 @@ int main(void)
     {
         if (state == WAIT_FOR_START)
         {
-            LATAbits.LATA7 = 1; // set the beam headlights as low
+            LATAbits.LATA7 = 0; // set the beam headlights as low
             whstop(); // stop the wheels
             schedInfo[1].enable = 1; // enable the indicators
             if (counter_for_timer == fifo_command.msg[fifo_command.tail][1] && fifo_command.tail != fifo_command.head)
@@ -242,6 +242,8 @@ int main(void)
         {
             LATAbits.LATA7 = 1; // set the beam headlights as high
             schedInfo[1].enable = 0; // disable the indicators
+            LATBbits.LATB8 = 0; // turn off the indicators
+            LATFbits.LATF1 = 0; // turn off the indicators
             
             // check the control buffer is not empty
             if (fifo_command.tail != fifo_command.head)
@@ -356,11 +358,16 @@ void __attribute__((__interrupt__, __auto_psv__)) _U1TXInterrupt(void)
 // uart1 interrupt reception function
 void __attribute__((__interrupt__, __auto_psv__)) _U1RXInterrupt(void)
 {
+    char c;
     // interrupt to receive the data from the uart and save them in the circular buffer
     //set the flag to zero
     IFS0bits.U1RXIF = 0;
-    char c = U1RXREG;
-    return_parser = parse_byte(&pstate, c);
+    while (U1STAbits.URXDA && return_parser != NEW_MESSAGE)
+    {
+        c = U1RXREG;
+        return_parser = parse_byte(&pstate, c);
+    }
+
 }
 
 //interrupt associated to button 
@@ -388,8 +395,6 @@ void __attribute__((interrupt, auto_psv)) _T1Interrupt(void) {
         if (state == WAIT_FOR_START)
         {
             state = EXECUTE;
-            LATBbits.LATB8 = 0; // turn off the indicators
-            LATFbits.LATF1 = 0; // turn off the indicators
         }
         else 
         {

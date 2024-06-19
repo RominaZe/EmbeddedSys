@@ -1,7 +1,7 @@
 #ifndef CB_H
 #define	CB_H
 
-#define DIMFIFOWRITE 200 // change 
+#define DIMFIFOWRITE 200
 #define MAX_COMMANDS 11 // (not now: 10 commands + 1 for the head)
 
 typedef struct {
