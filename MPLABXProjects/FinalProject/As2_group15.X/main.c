@@ -452,7 +452,7 @@ void taskPrintBattery (void* param)
             // circular increment of the head of the buffer
             cd->fifo_write.head = (cd->fifo_write.head + 1) % DIMFIFOWRITE;
         }
-        // else to not lose the data (TO COMPLETE) 
+        // else discard data
     } 
     if (U1STAbits.UTXBF == 0)
     {
@@ -478,7 +478,7 @@ void taskPrintInfrared (void* param)
             // circular increment of the head of the buffer
             cd->fifo_write.head = (cd->fifo_write.head + 1) % DIMFIFOWRITE;
         }
-        // else to not lose the data (TO COMPLETE)
+        // else discard data
     }  
     if (U1STAbits.UTXBF == 0)
     {
@@ -513,7 +513,7 @@ void printAck (char ack)
             // circular increment of the head of the buffer
             data_values.fifo_write.head = (data_values.fifo_write.head + 1) % DIMFIFOWRITE;
         }
-        // else to not lose the data (TO COMPLETE)
+        // else discard data
     }  
     if (U1STAbits.UTXBF == 0)
     {
