@@ -241,6 +241,7 @@ int main(void)
         if (state == EXECUTE)
         {
             LATAbits.LATA7 = 1; // set the beam headlights as high
+            
             schedInfo[1].enable = 0; // disable the indicators
             LATBbits.LATB8 = 0; // turn off the indicators
             LATFbits.LATF1 = 0; // turn off the indicators
