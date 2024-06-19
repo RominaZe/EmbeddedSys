@@ -2,7 +2,7 @@
  * File:   main.c
  * Author: 
  * * Chiappe Andrea s4673275
- * * Di Donna Alberto 4944656
+ * * Di Donna Alberto s4944656
  * * Guelfi Fabio s5004782
  * * Utegaliyeva Aidana s5624137
  *
@@ -128,14 +128,14 @@ int main(void)
     schedInfo[3].N = 1000; // 1 Hz
     schedInfo[3].f = taskPrintBattery;
     schedInfo[3].params = (void*)(&data_values);
-    schedInfo[3].enable = 1;
+    schedInfo[3].enable = 0;
 
     // Print Infrared task
     schedInfo[4].n = -5;
     schedInfo[4].N = 100;  // 10 Hz
     schedInfo[4].f = taskPrintInfrared;
     schedInfo[4].params = (void*)(&data_values);
-    schedInfo[4].enable = 1;
+    schedInfo[4].enable = 0;
 
     /* ################################################################
                         pin remap and setup of the led
@@ -236,6 +236,7 @@ int main(void)
                 counter_for_timer = -1; // reset the counter for the timer
                 fifo_command.tail = (fifo_command.tail + 1) % MAX_COMMANDS; // circular increment of the tail
             }
+            // if (counter_for_timer == fifo_command.msg[fifo_command.tail][1])
         }
         if (state == EXECUTE)
         {
@@ -263,11 +264,22 @@ int main(void)
             else
             {
                 whstop(); // stop the wheels
-            }
+            } 
         }
         
         scheduler(schedInfo, MAX_TASKS);
-        
+
+        // Obstacle avoidance
+        if(data_values.infraRed_data <= EMERGENCY_STOP){
+            whstop(); // stop the wheels
+            data_values.check_slow_down = -1;
+            LATFbits.LATF0 = 1; // set the brakes led as high
+        }
+        else 
+        {
+            LATFbits.LATF0 = 0; // set the brakes led as low
+        }
+
         // check if the distance is between the emergency stop and the pre-emergency stop, in this case I have to slow down the car
         if((data_values.infraRed_data < PRE_EMERGENCY_STOP && data_values.infraRed_data > EMERGENCY_STOP) && data_values.check_slow_down == 0)
         {
@@ -414,16 +426,6 @@ void taskADCSensing(void* param)
     int potBitsIr = ADC1BUF1;
     cd->battery_data = battery_conversion((float) potBitsBatt); 
     cd->infraRed_data = volt2cm((float) potBitsIr);
-
-    if(cd->infraRed_data <= EMERGENCY_STOP){
-        whstop(); // stop the wheels
-        cd->check_slow_down = -1;
-        LATFbits.LATF0 = 1; // set the brakes led as high
-    }
-    else 
-    {
-        LATFbits.LATF0 = 0; // set the brakes led as low
-    }
 }
 
 void taskPrintBattery (void* param)
